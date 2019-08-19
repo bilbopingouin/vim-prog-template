@@ -69,7 +69,7 @@ let g:templates_directory = get(g:, 'templates_directory', expand("<sfile>:h:h")
 let Skeleton_path = g:templates_directory 
 
 " Configuration file
-if exists(g:templates_configuration)
+if exists("g:templates_configuration")
   :runtime expand(g:templates_configuration)
 endif
 
