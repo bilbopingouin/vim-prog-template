@@ -15,10 +15,10 @@
 " Available commands:
 "  UTILITY
 "   call ReadSkeleton()		    -- See the available templates and insert it
-"   call GetToCursor()		    -- Look for <CURSOR> get into insert mode
-"   call SetTemplValues()	    -- Set some values from the templates
-"   call CreateScratchBuffer()	    -- Create a new buffer with scratch options
-"   call MoveScratchBufferContent() -- Yank the content of the current buffer, unload 
+"   call s:GetToCursor()	    -- Look for <CURSOR> get into insert mode
+"   call s:SetTemplValues()	    -- Set some values from the templates
+"   call s:CreateScratchBuffer()    -- Create a new buffer with scratch options
+"   call s:MoveScratchBufferContent() -- Yank the content of the current buffer, unload 
 "				      it and paste it in the next buffer.		     
 "
 "  GENERIC TEMPLATE
@@ -107,13 +107,13 @@ function! ReadSkeleton()
   endif
   if skeletonName != ""
     execute "0read " . skeletonName
-    call SetTemplValues()
+    call s:SetTemplValues()
   endif
 endfunction
 
 "==============================================================================
 
-function! GetToCursor()
+function! s:GetToCursor()
   if search("<CURSOR>") != 0
     :echo "Reaching <CURSOR>"
     :call search("<CURSOR>")
@@ -127,7 +127,7 @@ endfunction
 
 "==============================================================================
 
-function! SetTemplValues()
+function! s:SetTemplValues()
   if search("|YEAR|") != 0
     :echo "Substitute |YEAR|"
     :%s/|YEAR|/\=strftime("%Y")/g
@@ -198,7 +198,7 @@ endfunction
 
 "==============================================================================
 
-function! CreateScratchBuffer()
+function! s:CreateScratchBuffer()
    :new
    :setlocal buftype=nofile
    :setlocal bufhidden=hide
@@ -207,7 +207,7 @@ endfunction
 
 "==============================================================================
 
-function! MoveScratchBufferContent()
+function! s:MoveScratchBufferContent()
   :%y
   :bunload
   :normal P
@@ -226,8 +226,8 @@ nmap <leader>rs :call ReadSkeleton()<cr>
 function! IncludeVimHeaderTempl()
   :set paste
   :execute "0r!cat ".g:templates_directory."/vimhead.vim"
-  :call SetTemplValues()
-  :call GetToCursor()
+  :call s:SetTemplValues()
+  :call s:GetToCursor()
   :set nopaste
 endfunction
 
@@ -259,8 +259,8 @@ function! IncludeCHeaderFileTempl()
   :execute "0r!cat ".g:templates_directory."/chead.c"
   :execute "r!cat ".g:templates_directory."/cbody.h"
   :call SetCHeaderTags()
-  :call SetTemplValues()
-  :call GetToCursor()
+  :call s:SetTemplValues()
+  :call s:GetToCursor()
   :set nopaste
 endfunction
 
@@ -292,8 +292,8 @@ function! IncludeCSourceFileTempl()
   :execute "0r!cat ".g:templates_directory."/chead.c"
   :execute "r!cat ".g:templates_directory."/cbody.c"
   :call SetCSourceInclude ()
-  :call SetTemplValues()
-  :call GetToCursor()
+  :call s:SetTemplValues()
+  :call s:GetToCursor()
   :set nopaste
 endfunction
 
@@ -374,7 +374,7 @@ function! IncludeCFunctionDoc()
   :set paste
   :execute "r!cat ".g:templates_directory."/cfunc.c"
   :%foldopen!
-  :call SetTemplValues()
+  :call s:SetTemplValues()
   :call SetTemplFnValues()
   :set nopaste
 endfunction
@@ -422,14 +422,14 @@ function! CreateNewCFunction()
     endwhile 
   endif
 
-  :call CreateScratchBuffer()
+  :call s:CreateScratchBuffer()
   :call IncludeCFunction()
   :call IncludeCFunctionDoc()
   :let s:has_cursor = search("<CURSOR>")
-  :call MoveScratchBufferContent()
+  :call s:MoveScratchBufferContent()
   :set nopaste
   if s:has_cursor != 0
-    :call GetToCursor()
+    :call s:GetToCursor()
   endif
 endfunction
 
