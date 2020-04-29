@@ -3,7 +3,7 @@
   *                   |COMPANY|
   *                   |ADDRESS|
   *
-  *     -- All rights reserved --
+  *   Tous droits reserves - Alle Rechte vorbehalten - All rights reserved
   *
   *----------------------------------------------------------------------------
   *

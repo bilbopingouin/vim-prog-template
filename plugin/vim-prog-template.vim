@@ -177,7 +177,7 @@ function! s:SetTemplValues()
  
   if search("|EMAIL|") != 0
     :echo "Substitute |EMAIL|"
-    if exists("g:author_short") != 0
+    if exists("g:author_email") != 0
       :%s/|EMAIL|/\=expand(g:author_email)/g
     else
       :%s/|EMAIL|/\=input("Email address: ")/g
@@ -187,10 +187,20 @@ function! s:SetTemplValues()
 
   if search("|COMPANY|") != 0
     :echo "Substitute |COMPANY|"
-    if exists("g:author_short") != 0
+    if exists("g:author_company") != 0
       :%s/|COMPANY|/\=expand(g:author_company)/g
     else
       :%s/|COMPANY|/\=input("Company name: ")/g
+      :echo "."
+    endif
+  endif
+
+  if search("|ADDRESS|") != 0
+    :echo "Substitute |ADDRESS|"
+    if exists("g:author_company_address") != 0
+      :%s/|ADDRESS|/\=expand(g:author_company_address)/g
+    else
+      :%s/|ADDRESS|/\=input("Company address: ")/g
       :echo "."
     endif
   endif
