@@ -4,52 +4,6 @@
 "==============================================================================
 " Author: bilbopingouin
 " Original date: 03.11.2014
-" Modification history:
-"    Date    |  Name        | Comments
-"  ----------|--------------|-------------------------------
-"  4.11.14   | BP           | Added function InsertPreProcIf and <leader>pi
-"  18.08.2019| BP	    | Adapted to stand alone plugin
-"  19.08.2019| BP	    | Merged various functions into a single file
-"            |              |
-"==============================================================================
-" Available commands:
-"  UTILITY
-"   call ReadSkeleton()		    -- See the available templates and insert it
-"   call s:GetToCursor()	    -- Look for <CURSOR> get into insert mode
-"   call s:SetTemplValues()	    -- Set some values from the templates
-"   call s:CreateScratchBuffer()    -- Create a new buffer with scratch options
-"   call s:MoveScratchBufferContent() -- Yank the content of the current buffer, unload 
-"				      it and paste it in the next buffer.		     
-"
-"  GENERIC TEMPLATE
-"   <leader>rs			    -- inserts any template: interactive choice
-"
-"  FILES SPECIFIC
-"   call IncludeVimHeaderTempl()    -- Include the template and update them
-"   call CreateNewVimCfgFile()	    -- Create a new vim file including the 
-"				      corresponding template
-"
-"   call SetCHeaderTags()	    -- Set the #ifndef ... macros
-"   call IncludeCHeaderFileTempl()  -- Include the template and update them
-"   call CreateNewCHeaderFile()	    -- Create a new header file including the
-"				      templates
-"   call SetCSourceInclude()	    -- Set the #include "header.h"
-"   call IncludeCSourceFileTempl()  -- Include the template and update them
-"   call CreateNewCSourceFile()	    -- Create a new C source file including the 
-"				      corresponding templates
-"   <leader>cch			    -- Create a new C/C++ header file
-"   <leader>ccs			    -- Create a new C/C++ source file
-"
-"  FUNCTIONS SPECIFIC
-"   call SetTemplFnValues()	    -- Update the documentation of a function
-"				      with specific parameters
-"   call IncludeCFunctionDoc()	    -- Include the function documentation
-"   call IncludeCFunction()	    -- Include a function skeleton
-"   call CreateNewCFunction()	    -- Inserts a new function with its
-"				      respective documentation
-"   <leader>ccf			    -- Inserts a new function
-"
-"
 "==============================================================================
 " Notes
 "   ReadSkeleton using:
@@ -77,7 +31,21 @@ endif
 "   UTILITY FUNCTIONS
 "==============================================================================
 
-function! ReadSkeleton()
+function! s:ReplaceOccurences(tag, variable, input)
+  if search(a:tag) != 0
+    :echo "Substitute ".a:tag
+    if exists(a:variable)
+      :exec ":%s/".a:tag."/".a:variable."/g"
+    else
+      if !empty(a:input)
+	:exec ":%s/".a:tag."/\=input(\"".a:input.": \")/g"
+	:echo "."
+      endif
+    endif
+  endif
+endfunction
+
+function! code_templates#ReadSkeleton()
   if exists ("g:Skeleton_path")
     let skeleton_path = g:Skeleton_path
   else
@@ -118,7 +86,7 @@ function! s:GetToCursor()
     :echo "Reaching <CURSOR>"
     :call search("<CURSOR>")
     if foldlevel(".")>0
-      :normal zO	 " otherwise deletes 19 lines
+      :normal zO	 " otherwise several lines
     endif
     :normal 8x
     :startinsert
@@ -155,53 +123,69 @@ function! s:SetTemplValues()
     ":echo "."
   endif
 
-  if search("|AUTHOR|") != 0
-    :echo "Substitute |AUTHOR|"
-    if exists("g:author_name") != 0
-      :%s/|AUTHOR|/\=expand(g:author_name)/g
-    else
-      :%s/|AUTHOR|/\=input("Author name: ")/g
-      :echo "."
-    endif
-  endif
+  " if search("|AUTHOR|") != 0
+  "   :echo "Substitute |AUTHOR|"
+  "   if exists("g:author_name") != 0
+  "     :%s/|AUTHOR|/\=expand(g:author_name)/g
+  "   else
+  "     :%s/|AUTHOR|/\=input("Author name: ")/g
+  "     :echo "."
+  "   endif
+  " endif
+  s:ReplaceOccurences("|AUTHOR|", 'g:author_name', "Author name")
 
-  if search("|AUTHSHORT|") != 0
-    :echo "Substitute |AUTHSHORT|"
-    if exists("g:author_short") != 0
-      :%s/|AUTHSHORT|/\=expand(g:author_short)/g
-    else
-      :%s/|AUTHSHORT|/\=input("Author short name: ")/g
-      :echo "."
-    endif
-  endif
+  " if search("|AUTHSHORT|") != 0
+  "   :echo "Substitute |AUTHSHORT|"
+  "   if exists("g:author_short") != 0
+  "     :%s/|AUTHSHORT|/\=expand(g:author_short)/g
+  "   else
+  "     :%s/|AUTHSHORT|/\=input("Author short name: ")/g
+  "     :echo "."
+  "   endif
+  " endif
+  s:ReplaceOccurences("|AUTHORSHORT|", 'g:author_short', "Author short name")
  
-  if search("|EMAIL|") != 0
-    :echo "Substitute |EMAIL|"
-    if exists("g:author_email") != 0
-      :%s/|EMAIL|/\=expand(g:author_email)/g
-    else
-      :%s/|EMAIL|/\=input("Email address: ")/g
-      :echo "."
-    endif
-  endif
+  " if search("|EMAIL|") != 0
+  "   :echo "Substitute |EMAIL|"
+  "   if exists("g:author_email") != 0
+  "     :%s/|EMAIL|/\=expand(g:author_email)/g
+  "   else
+  "     :%s/|EMAIL|/\=input("Email address: ")/g
+  "     :echo "."
+  "   endif
+  " endif
+  s:ReplaceOccurences("|EMAIL|", 'g:author_email', "Email address")
 
-  if search("|COMPANY|") != 0
-    :echo "Substitute |COMPANY|"
-    if exists("g:author_company") != 0
-      :%s/|COMPANY|/\=expand(g:author_company)/g
-    else
-      :%s/|COMPANY|/\=input("Company name: ")/g
-      :echo "."
-    endif
-  endif
+  " if search("|COMPANY|") != 0
+  "   :echo "Substitute |COMPANY|"
+  "   if exists("g:author_company") != 0
+  "     :%s/|COMPANY|/\=expand(g:author_company)/g
+  "   else
+  "     :%s/|COMPANY|/\=input("Company name: ")/g
+  "     :echo "."
+  "   endif
+  " endif
+  s:ReplaceOccurences("|COMPANY|", 'g:author_company', "Company name")
 
-  if search("|ADDRESS|") != 0
-    :echo "Substitute |ADDRESS|"
-    if exists("g:author_company_address") != 0
-      :%s/|ADDRESS|/\=expand(g:author_company_address)/g
+  " if search("|ADDRESS|") != 0
+  "   :echo "Substitute |ADDRESS|"
+  "   if exists("g:author_company_address") != 0
+  "     :%s/|ADDRESS|/\=expand(g:author_company_address)/g
+  "   else
+  "     :%s/|ADDRESS|/\=input("Company address: ")/g
+  "     :echo "."
+  "   endif
+  " endif
+  s:ReplaceOccurences("|ADDRESS|", 'g:author_company_address', "Company address")
+
+  if search("|NAMESPACE|") != 0
+    :echo "Substitute |NAMESPACE|"
+    :let l:match = match(expand('%:t:r'), '_')
+    if l:match > -1
+      :let l:listelements = split(expand('%:t:r'), '_')
+      :%s/|NAMESPACE|/\=expand(l:listelements[0]).'_'/g
     else
-      :%s/|ADDRESS|/\=input("Company address: ")/g
-      :echo "."
+      :%s/|NAMESPACE|/\=expand('%:t:r')/g
     endif
   endif
 endfunction
@@ -227,13 +211,13 @@ endfunction
 "   GENERIC TEMPLATE
 "==============================================================================
 
-nmap <leader>rs :call ReadSkeleton()<cr>
+nmap <leader>rs :call code_templates#ReadSkeleton()<cr>
 
 "==============================================================================
 "   FILES SPECIFIC
 "==============================================================================
 
-function! IncludeVimHeaderTempl()
+function! code_templates#IncludeVimHeaderTempl()
   :set paste
   :execute "0r!cat ".g:templates_directory."/vimhead.vim"
   :call s:SetTemplValues()
@@ -243,7 +227,7 @@ endfunction
 
 "==============================================================================
 
-function! CreateNewVimCfgFile()
+function! code_templates#CreateNewVimCfgFile()
   :let file_name = input("vim file name: ")
   if filereadable(file_name)
     :echo "File already exists"
@@ -255,16 +239,17 @@ endfunction
 
 "==============================================================================
 
-function! SetCHeaderTags ()
+function! code_templates#SetCHeaderTags ()
   :let tag_name = substitute(toupper(expand("%:t")), '\.', '_', 'g')
-  if search("|TAG|")
-    :%s/|TAG|/\=expand(tag_name)
-  endif
+  " if search("|TAG|")
+  "   :%s/|TAG|/\=expand(tag_name)
+  " endif
+  s:ReplaceOccurences("|TAG|", 'tag_name', "")
 endfunction
 
 "==============================================================================
 
-function! IncludeCHeaderFileTempl()
+function! code_templates#IncludeCHeaderFileTempl()
   :set paste
   :execute "0r!cat ".g:templates_directory."/chead.c"
   :execute "r!cat ".g:templates_directory."/cbody.h"
@@ -276,7 +261,7 @@ endfunction
 
 "==============================================================================
 
-function! CreateNewCHeaderFile()
+function! code_templates#CreateNewCHeaderFile()
   :let file_name = input("Header file name: ")
   if filereadable(file_name)
     :echo "File already exists"
@@ -288,7 +273,7 @@ endfunction
 
 "==============================================================================
 
-function! SetCSourceInclude ()
+function! code_templates#SetCSourceInclude ()
   :let header_name = substitute(expand("%:t"), '.c$', '.h', '')
   if search("|FILEHEADER|")
     :%s/|FILEHEADER|/\=expand(header_name)
@@ -297,7 +282,7 @@ endfunction
 
 "==============================================================================
 
-function! IncludeCSourceFileTempl()
+function! code_templates#IncludeCSourceFileTempl()
   :set paste
   :execute "0r!cat ".g:templates_directory."/chead.c"
   :execute "r!cat ".g:templates_directory."/cbody.c"
@@ -309,7 +294,7 @@ endfunction
 
 "==============================================================================
 
-function! CreateNewCSourceFile()
+function! code_templates#CreateNewCSourceFile()
   :let file_name = input("Source file name: ")
   if filereadable(file_name)
     :echo "File already exists"
@@ -321,8 +306,8 @@ endfunction
 
 "==============================================================================
 
-nmap <leader>cch  :call CreateNewCHeaderFile()<CR>
-nmap <leader>ccs  :call CreateNewCSourceFile()<CR>
+nmap <leader>cch  :call code_templates#CreateNewCHeaderFile()<CR>
+nmap <leader>ccs  :call code_templates#CreateNewCSourceFile()<CR>
 
 
 "==============================================================================
@@ -336,7 +321,7 @@ let s:param_list      = [["name","type"]]
 
 "==============================================================================
 
-function! SetTemplFnValues()
+function! s:SetTemplFnValues()
   if search("|FUNCTION NAME|") != 0
     :%s/|FUNCTION NAME|/\=expand(s:function_name)/g
   endif
@@ -346,32 +331,32 @@ function! SetTemplFnValues()
   endif
 
   if search("|PARAM DESC|") != 0
+    /|PARAM DESC|
+    :let l:param_prefix=getline('.')[:match(getline('.'), '|')-1]
     if len(s:param_list) == 0
-      /|PARAM DESC|
-      :execute "normal! 0c$   *   @param   none"
+      :execute "normal! 0c$".l:param_prefix."@param   none"
     else
-      /|PARAM DESC|
       :delete
       :.-1
       :let i=0
       while i<len(s:param_list)
-	:execute "normal! o   *   @param   ".s:param_list[i][0]."  description"
+	:execute "normal! o".l:param_prefix."@param   ".s:param_list[i][0]."  description"
 	:let i=i+1
       endwhile
     endif
   endif
 
   if search("|PARAM TYPE|") != 0
+    /|PARAM TYPE|
+    :let l:param_prefix=getline('.')[:match(getline('.'), '|')-1]
     if len(s:param_list) == 0
-      /|PARAM TYPE|
-      :execute "normal! 0c$   *   @tparam  none"
+      :execute "normal! 0c$".l:param_prefix."@param   none"
     else
-      /|PARAM TYPE|
       :delete
       :.-1
       :let i=0
       while i<len(s:param_list)
-	:execute "normal! o   *   @tparam  ".s:param_list[i][0]."  ".s:param_list[i][1]
+	:execute "normal! o".l:param_prefix."@tparam  ".s:param_list[i][0]."  ".s:param_list[i][1]
 	:let i=i+1
       endwhile
     endif
@@ -380,18 +365,20 @@ endfunction
 
 "==============================================================================
 
-function! IncludeCFunctionDoc()
+function! code_templates#IncludeCFunctionDoc()
   :set paste
   :execute "r!cat ".g:templates_directory."/cfunc.c"
-  :%foldopen!
+  ":%foldopen! 
+  """ complains if no fold is there
+  """ however, the replacement of the <CURSOR> might delete the fold
   :call s:SetTemplValues()
-  :call SetTemplFnValues()
+  :call s:SetTemplFnValues()
   :set nopaste
 endfunction
 
 "==============================================================================
 
-function! IncludeCFunction()
+function! s:IncludeCFunction()
   :delm a
   :mark a
   :execute "normal! i".s:function_retval." ".s:function_name." ("
@@ -415,7 +402,7 @@ endfunction
 
 "==============================================================================
 
-function! CreateNewCFunction()
+function! code_templates#CreateNewCFunction()
   :set paste
   :let s:function_name   = input("Function name: ")
   :let s:function_retval = input("Function return type: ")
@@ -433,8 +420,8 @@ function! CreateNewCFunction()
   endif
 
   :call s:CreateScratchBuffer()
-  :call IncludeCFunction()
-  :call IncludeCFunctionDoc()
+  :call s:IncludeCFunction()
+  :call code_templates#IncludeCFunctionDoc()
   :let s:has_cursor = search("<CURSOR>")
   :call s:MoveScratchBufferContent()
   :set nopaste
@@ -445,5 +432,5 @@ endfunction
 
 "==============================================================================
 
-nmap <leader>ccf  :call	CreateNewCFunction()<CR>
+nmap <leader>ccf  :call	code_templates#CreateNewCFunction()<CR>
 
