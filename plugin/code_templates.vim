@@ -32,17 +32,23 @@ endif
 "==============================================================================
 
 function! s:ReplaceOccurences(tag, variable, input)
+  :echo "Looking for ".a:tag
   if search(a:tag) != 0
     :echo "Substitute ".a:tag
     if exists(a:variable)
-      :exec ":%s/".a:tag."/".a:variable."/g"
+      :exec "let l:tmp = expand(".a:variable.")"
+      :exec ":%s/".a:tag."/".l:tmp."/g"
     else
       if !empty(a:input)
-	:exec ":%s/".a:tag."/\=input(\"".a:input.": \")/g"
-	:echo "."
-      endif
-    endif
-  endif
+        :exec ":%s/".a:tag."/\=input(\"".a:input.": \")/g"
+        :echo "."
+      else
+	if !empty(a:variable)
+	  :exec ":%s/".a:tag."/".a:variable."/g"
+	endif " empty
+      endif " empty
+    endif " exists
+  endif	" search
 endfunction
 
 function! code_templates#ReadSkeleton()
@@ -132,7 +138,7 @@ function! s:SetTemplValues()
   "     :echo "."
   "   endif
   " endif
-  s:ReplaceOccurences("|AUTHOR|", 'g:author_name', "Author name")
+  :call s:ReplaceOccurences("|AUTHOR|", expand('g:author_name'), "Author name")
 
   " if search("|AUTHSHORT|") != 0
   "   :echo "Substitute |AUTHSHORT|"
@@ -143,7 +149,7 @@ function! s:SetTemplValues()
   "     :echo "."
   "   endif
   " endif
-  s:ReplaceOccurences("|AUTHORSHORT|", 'g:author_short', "Author short name")
+  :call s:ReplaceOccurences("|AUTHORSHORT|", 'g:author_short', "Author short name")
  
   " if search("|EMAIL|") != 0
   "   :echo "Substitute |EMAIL|"
@@ -154,7 +160,7 @@ function! s:SetTemplValues()
   "     :echo "."
   "   endif
   " endif
-  s:ReplaceOccurences("|EMAIL|", 'g:author_email', "Email address")
+  :call s:ReplaceOccurences("|EMAIL|", 'g:author_email', "Email address")
 
   " if search("|COMPANY|") != 0
   "   :echo "Substitute |COMPANY|"
@@ -165,7 +171,7 @@ function! s:SetTemplValues()
   "     :echo "."
   "   endif
   " endif
-  s:ReplaceOccurences("|COMPANY|", 'g:author_company', "Company name")
+  :call s:ReplaceOccurences("|COMPANY|", 'g:author_company', "Company name")
 
   " if search("|ADDRESS|") != 0
   "   :echo "Substitute |ADDRESS|"
@@ -176,7 +182,7 @@ function! s:SetTemplValues()
   "     :echo "."
   "   endif
   " endif
-  s:ReplaceOccurences("|ADDRESS|", 'g:author_company_address', "Company address")
+  :call s:ReplaceOccurences("|ADDRESS|", 'g:author_company_address', "Company address")
 
   if search("|NAMESPACE|") != 0
     :echo "Substitute |NAMESPACE|"
@@ -241,10 +247,10 @@ endfunction
 
 function! code_templates#SetCHeaderTags ()
   :let tag_name = substitute(toupper(expand("%:t")), '\.', '_', 'g')
-  " if search("|TAG|")
-  "   :%s/|TAG|/\=expand(tag_name)
-  " endif
-  s:ReplaceOccurences("|TAG|", 'tag_name', "")
+  "if search("|TAG|")
+  "  :%s/|TAG|/\=expand(tag_name)
+  "endif
+  :call s:ReplaceOccurences("|TAG|", expand(tag_name), "")
 endfunction
 
 "==============================================================================
@@ -253,7 +259,7 @@ function! code_templates#IncludeCHeaderFileTempl()
   :set paste
   :execute "0r!cat ".g:templates_directory."/chead.c"
   :execute "r!cat ".g:templates_directory."/cbody.h"
-  :call SetCHeaderTags()
+  :call code_templates#SetCHeaderTags()
   :call s:SetTemplValues()
   :call s:GetToCursor()
   :set nopaste
@@ -267,7 +273,7 @@ function! code_templates#CreateNewCHeaderFile()
     :echo "File already exists"
   else
     :execute ":tabnew ".expand(file_name)
-    :call IncludeCHeaderFileTempl()
+    :call code_templates#IncludeCHeaderFileTempl()
   endif
 endfunction
 
@@ -286,7 +292,7 @@ function! code_templates#IncludeCSourceFileTempl()
   :set paste
   :execute "0r!cat ".g:templates_directory."/chead.c"
   :execute "r!cat ".g:templates_directory."/cbody.c"
-  :call SetCSourceInclude ()
+  :call code_templates#SetCSourceInclude ()
   :call s:SetTemplValues()
   :call s:GetToCursor()
   :set nopaste
@@ -300,7 +306,7 @@ function! code_templates#CreateNewCSourceFile()
     :echo "File already exists"
   else
     :execute ":tabnew ".expand(file_name)
-    :call IncludeCSourceFileTempl()
+    :call code_templates#IncludeCSourceFileTempl()
   endif
 endfunction
 
