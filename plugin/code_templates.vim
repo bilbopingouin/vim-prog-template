@@ -408,8 +408,7 @@ endfunction
 
 "==============================================================================
 
-function! code_templates#CreateNewCFunction()
-  :set paste
+function! code_templates#GetFunctionInformationFromUser()
   :let s:function_name   = input("Function name: ")
   :let s:function_retval = input("Function return type: ")
 
@@ -424,7 +423,51 @@ function! code_templates#CreateNewCFunction()
       :let i=i+1
     endwhile 
   endif
+endfunction
 
+"==============================================================================
+" Reads the prototype of a function and extract
+" the relevant data for a function header/documentation
+"
+function! code_templates#GetFunctionInformationFromProto()
+  :let l:curline = getline('.')
+  :let l:function_pattern='^\(.\+\)\ \+\([^\ ]\+\)\ *(\([^)]*\)).*'
+
+  :let s:function_retval  = substitute(l:curline, l:function_pattern, '\1', '')
+  :let s:function_name	  = substitute(l:curline, l:function_pattern, '\2', '')
+  :let l:arguments	  = substitute(l:curline, l:function_pattern, '\3', '')
+  ":echo l:arguments
+
+  :let l:args = []
+  if (l:arguments =~ 'void')
+    ":echo 'yes'
+  else
+    ":echo 'no'
+    :let l:args = split(substitute(l:arguments, '[()]', '', ''), ',')
+  endif
+  ":echo l:args
+
+  ":execute 'normal  oreturns '.s:function_retval
+  ":execute 'normal  ofunction '.s:function_name
+  ":execute 'normal  oarguments '.l:arguments
+
+  :let s:param_list  = []
+  if len(l:args)>0
+    :let i = 0
+    while i < len(l:args)
+      :let pname = substitute(l:args[i], '^\(.*\)\ \+\([^\ ]\+\)\ *', '\2', '')
+      :let ptype = substitute(l:args[i], '^\(.*\)\ \+\([^\ ]\+\)\ *', '\1', '')
+      :call add(s:param_list,[pname,ptype])
+      :let i=i+1
+    endwhile
+  endif
+endfunction
+
+"==============================================================================
+
+function! code_templates#CreateNewCFunction()
+  :set paste
+  :call code_templates#GetFunctionInformationFromUser()
   :call s:CreateScratchBuffer()
   :call s:IncludeCFunction()
   :call code_templates#IncludeCFunctionDoc()
@@ -438,5 +481,27 @@ endfunction
 
 "==============================================================================
 
+function! code_templates#CreateNewCFunctionDoc()
+  :set paste
+  :call code_templates#GetFunctionInformationFromProto()
+  :call s:CreateScratchBuffer()
+  ":call s:IncludeCFunction()
+  :call code_templates#IncludeCFunctionDoc()
+  :let s:has_cursor = search("<CURSOR>")
+  :call s:MoveScratchBufferContent()
+  :set nopaste
+  if s:has_cursor != 0
+    :call s:GetToCursor()
+  endif
+endfunction
+
+"==============================================================================
+
 nmap <leader>ccf  :call	code_templates#CreateNewCFunction()<CR>
 
+"==============================================================================
+
+command! -nargs=0 CTemplNewHeader     :call code_templates#CreateNewCHeaderFile()<CR>
+command! -nargs=0 CTemplNewSource     :call code_templates#CreateNewCSourceFile()<CR>
+command! -nargs=0 CTemplNewFunction   :call code_templates#CreateNewCFunction()<CR>
+command! -nargs=0 CTemplFunctionDoc   :call code_templates#CreateNewCFunctionDoc()<CR>
