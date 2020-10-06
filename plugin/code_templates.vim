@@ -300,6 +300,20 @@ endfunction
 
 "==============================================================================
 
+" This function assumes that it was called with the cursor on the old
+" header
+function! code_templates#UpdateCFileTempl()
+  :execute "normal dap"
+  :set paste
+  :execute "0r!cat ".g:templates_directory."/chead.c"
+  :call code_templates#SetCSourceInclude ()
+  :call s:SetTemplValues()
+  :call s:GetToCursor()
+  :set nopaste
+endfunction
+
+"==============================================================================
+
 function! code_templates#CreateNewCSourceFile()
   :let file_name = input("Source file name: ")
   if filereadable(file_name)
@@ -503,5 +517,7 @@ nmap <leader>ccf  :call	code_templates#CreateNewCFunction()<CR>
 
 command! -nargs=0 CTemplNewHeader     :call code_templates#CreateNewCHeaderFile()<CR>
 command! -nargs=0 CTemplNewSource     :call code_templates#CreateNewCSourceFile()<CR>
+command! -nargs=0 CTemplUpdHead	      :call code_templates#UpdateCFileTempl()<CR>
+
 command! -nargs=0 CTemplNewFunction   :call code_templates#CreateNewCFunction()<CR>
 command! -nargs=0 CTemplFunctionDoc   :call code_templates#CreateNewCFunctionDoc()<CR>
