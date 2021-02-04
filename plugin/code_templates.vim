@@ -124,64 +124,17 @@ function! s:SetTemplValues()
 
   if search("|MODULE|") != 0
     :echo "Substitute |MODULE|"
-    ":%s/|MODULE|/\=input("Module name: ")/g
     :%s/|MODULE|/\=expand("%:t:r")/g
-    ":echo "."
   endif
 
-  " if search("|AUTHOR|") != 0
-  "   :echo "Substitute |AUTHOR|"
-  "   if exists("g:author_name") != 0
-  "     :%s/|AUTHOR|/\=expand(g:author_name)/g
-  "   else
-  "     :%s/|AUTHOR|/\=input("Author name: ")/g
-  "     :echo "."
-  "   endif
-  " endif
   :call s:ReplaceOccurences("|AUTHOR|", expand('g:author_name'), "Author name")
 
-  " if search("|AUTHSHORT|") != 0
-  "   :echo "Substitute |AUTHSHORT|"
-  "   if exists("g:author_short") != 0
-  "     :%s/|AUTHSHORT|/\=expand(g:author_short)/g
-  "   else
-  "     :%s/|AUTHSHORT|/\=input("Author short name: ")/g
-  "     :echo "."
-  "   endif
-  " endif
   :call s:ReplaceOccurences("|AUTHORSHORT|", 'g:author_short', "Author short name")
  
-  " if search("|EMAIL|") != 0
-  "   :echo "Substitute |EMAIL|"
-  "   if exists("g:author_email") != 0
-  "     :%s/|EMAIL|/\=expand(g:author_email)/g
-  "   else
-  "     :%s/|EMAIL|/\=input("Email address: ")/g
-  "     :echo "."
-  "   endif
-  " endif
   :call s:ReplaceOccurences("|EMAIL|", 'g:author_email', "Email address")
 
-  " if search("|COMPANY|") != 0
-  "   :echo "Substitute |COMPANY|"
-  "   if exists("g:author_company") != 0
-  "     :%s/|COMPANY|/\=expand(g:author_company)/g
-  "   else
-  "     :%s/|COMPANY|/\=input("Company name: ")/g
-  "     :echo "."
-  "   endif
-  " endif
   :call s:ReplaceOccurences("|COMPANY|", 'g:author_company', "Company name")
 
-  " if search("|ADDRESS|") != 0
-  "   :echo "Substitute |ADDRESS|"
-  "   if exists("g:author_company_address") != 0
-  "     :%s/|ADDRESS|/\=expand(g:author_company_address)/g
-  "   else
-  "     :%s/|ADDRESS|/\=input("Company address: ")/g
-  "     :echo "."
-  "   endif
-  " endif
   :call s:ReplaceOccurences("|ADDRESS|", 'g:author_company_address', "Company address")
 
   if search("|NAMESPACE|") != 0
@@ -247,9 +200,6 @@ endfunction
 
 function! code_templates#SetCHeaderTags ()
   :let tag_name = substitute(toupper(expand("%:t")), '\.', '_', 'g')
-  "if search("|TAG|")
-  "  :%s/|TAG|/\=expand(tag_name)
-  "endif
   :call s:ReplaceOccurences("|TAG|", expand(tag_name), "")
 endfunction
 
@@ -450,7 +400,6 @@ function! code_templates#GetFunctionInformationFromProto()
   :let s:function_retval  = substitute(l:curline, l:function_pattern, '\1', '')
   :let s:function_name	  = substitute(l:curline, l:function_pattern, '\2', '')
   :let l:arguments	  = substitute(l:curline, l:function_pattern, '\3', '')
-  ":echo l:arguments
 
   :let l:args = []
   if (l:arguments =~ 'void')
@@ -459,11 +408,6 @@ function! code_templates#GetFunctionInformationFromProto()
     ":echo 'no'
     :let l:args = split(substitute(l:arguments, '[()]', '', ''), ',')
   endif
-  ":echo l:args
-
-  ":execute 'normal  oreturns '.s:function_retval
-  ":execute 'normal  ofunction '.s:function_name
-  ":execute 'normal  oarguments '.l:arguments
 
   :let s:param_list  = []
   if len(l:args)>0
@@ -499,7 +443,6 @@ function! code_templates#CreateNewCFunctionDoc()
   :set paste
   :call code_templates#GetFunctionInformationFromProto()
   :call s:CreateScratchBuffer()
-  ":call s:IncludeCFunction()
   :call code_templates#IncludeCFunctionDoc()
   :let s:has_cursor = search("<CURSOR>")
   :call s:MoveScratchBufferContent()
