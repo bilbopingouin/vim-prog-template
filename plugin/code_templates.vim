@@ -27,6 +27,15 @@ if exists("g:templates_configuration")
   :runtime expand(g:templates_configuration)
 endif
 
+" Some configuration
+if !exists("g:code_templates_param_none")
+  :let g:code_templates_param_none = 1
+endif
+
+if !exists("g:code_templates_retval_void")
+  :let g:code_templates_retval_void = 1
+endif
+
 "==============================================================================
 "   UTILITY FUNCTIONS
 "==============================================================================
@@ -297,14 +306,26 @@ function! s:SetTemplFnValues()
   endif
 
   if search("RETVAL") != 0
-    :%s/|RETVAL|/\=expand(s:function_retval)/g
+    if g:code_templates_retval_void == 1
+      :%s/|RETVAL|/\=expand(s:function_retval)/g
+    else
+      if s:function_retval =~ "void"
+	:delete
+      else
+	:%s/|RETVAL|/\=expand(s:function_retval)/g
+      endif
+    endif
   endif
 
   if search("|PARAM DESC|") != 0
     /|PARAM DESC|
     :let l:param_prefix=getline('.')[:match(getline('.'), '|')-1]
     if len(s:param_list) == 0
-      :execute "normal! 0c$".l:param_prefix."@param   none"
+      if g:code_templates_param_none == 1
+	:execute "normal! 0c$".l:param_prefix."@param   none"
+      else
+	:delete
+      endif
     else
       :delete
       :.-1
@@ -320,7 +341,11 @@ function! s:SetTemplFnValues()
     /|PARAM TYPE|
     :let l:param_prefix=getline('.')[:match(getline('.'), '|')-1]
     if len(s:param_list) == 0
-      :execute "normal! 0c$".l:param_prefix."@param   none"
+      if g:code_templates_param_none == 1
+	:execute "normal! 0c$".l:param_prefix."@param   none"
+      else
+	:delete
+      endif
     else
       :delete
       :.-1
